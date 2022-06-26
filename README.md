@@ -1,1 +1,1 @@
-# allezon-analytics-platform
+# allezon-analytics
