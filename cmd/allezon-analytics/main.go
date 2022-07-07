@@ -2,8 +2,10 @@ package main
 
 import (
 	"flag"
-	_ "github.com/aerospike/aerospike-client-go"
-	"github.com/rzetelskik/allezon-analytics/internal/allezon-analytics"
+	as "github.com/aerospike/aerospike-client-go"
+	"github.com/rzetelskik/allezon-analytics/internal/allezon-analytics/aerospike"
+	"github.com/rzetelskik/allezon-analytics/internal/allezon-analytics/api"
+	"github.com/rzetelskik/allezon-analytics/internal/allezon-analytics/server"
 	"k8s.io/klog/v2"
 	"runtime"
 )
@@ -21,8 +23,25 @@ func main() {
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	server := allezon_analytics.NewHTTPServer(":8080")
+	host := as.NewHost("st111vm102.rtb-lab.pl", 3000)
+	policy := as.NewClientPolicy()
+
+	asClient, err := as.NewClientWithPolicyAndHost(policy, host)
+	if err != nil {
+		klog.Fatalf("can't create new Aerospike client: %v", err)
+	}
+	defer asClient.Close()
+
+	userProfileStore := &aerospike.AerospikeStore[api.UserProfile]{
+		Client:    asClient,
+		Policy:    as.NewPolicy(),
+		Namespace: "test",
+		Set:       "user_profile",
+		Bin:       "data",
+	}
+
+	srv := server.NewHTTPServer(":8080", userProfileStore)
 
 	klog.Info("Starting web server...")
-	klog.Fatal(server.ListenAndServe())
+	klog.Fatal(srv.ListenAndServe())
 }

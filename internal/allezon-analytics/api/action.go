@@ -1,4 +1,4 @@
-package allezon_analytics
+package api
 
 import (
 	"encoding/json"

@@ -1,4 +1,4 @@
-package allezon_analytics
+package api
 
 import (
 	"encoding/json"
@@ -34,12 +34,7 @@ func (ut *UserTag) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	for _, f := range []string{RFC3339Milli, "2006-01-02T15:04:05Z"} { // FIXME: remove this after email
-		ut.Time, err = time.Parse(f, aux.Time)
-		if err == nil {
-			break
-		}
-	}
+	ut.Time, err = ParseDatetimeWithZone(aux.Time)
 	if err != nil {
 		return fmt.Errorf("can't parse time: %w", err)
 	}
