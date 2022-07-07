@@ -1,4 +1,4 @@
-package main
+package allezon_analytics
 
 import (
 	"golang.org/x/exp/constraints"
