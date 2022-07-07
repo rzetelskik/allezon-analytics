@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	_ "github.com/aerospike/aerospike-client-go"
 	"github.com/rzetelskik/allezon-analytics/internal/allezon-analytics"
 	"k8s.io/klog/v2"
 	"runtime"
