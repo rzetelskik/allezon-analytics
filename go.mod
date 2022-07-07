@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/aerospike/aerospike-client-go v4.5.2+incompatible
+	github.com/golang/snappy v0.0.4
 	github.com/google/go-cmp v0.5.8
 	github.com/gorilla/mux v1.8.0
 	golang.org/x/exp v0.0.0-20220613132600-b0d781184e0d
