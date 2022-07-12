@@ -24,7 +24,7 @@ func (d Device) MarshalJSON() ([]byte, error) {
 	case TV:
 		s = `"TV"`
 	default:
-		return nil, fmt.Errorf("device is not supported")
+		return nil, fmt.Errorf("invalid device")
 	}
 
 	return []byte(s), nil
@@ -47,7 +47,7 @@ func (d *Device) UnmarshalJSON(data []byte) error {
 	case "TV":
 		*d = TV
 	default:
-		return fmt.Errorf("device '%s' is invalid", s)
+		return fmt.Errorf("device '%s' is not supported", s)
 	}
 
 	return nil

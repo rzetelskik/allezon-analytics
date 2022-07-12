@@ -4,18 +4,19 @@ import (
 	"sort"
 )
 
-func InsertIntoSortedSlice[T any](x T, xs []T, f func(int) bool) []T {
-	i := sort.Search(len(xs), f)
+func InsertIntoSortedSlice[T any](x T, xs []T, f func([]T) func(int) bool) []T {
+	i := sort.Search(len(xs), f(xs))
 	xs = append(xs, x)
 	copy(xs[i+1:], xs[i:])
 	xs[i] = x
 	return xs
 }
 
-func LimitSlice[T any](xs []T, limit int) []T {
-	if len(xs) > limit {
-		xs = xs[len(xs)-limit:]
+func HeadSlice[T any](xs []T, n int) []T {
+	if len(xs) > n {
+		return xs[:n]
 	}
+
 	return xs
 }
 

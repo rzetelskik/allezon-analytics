@@ -6,8 +6,6 @@ import (
 	"time"
 )
 
-const RFC3339Milli = "2006-01-02T15:04:05.000Z"
-
 type UserTag struct {
 	Time    time.Time `json:"time"`
 	Cookie  string    `json:"cookie"`

@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/rzetelskik/allezon-analytics/internal/allezon-analytics/aerospike"
@@ -38,16 +39,18 @@ func (s *server) UserTagsPostHandler(w http.ResponseWriter, r *http.Request) {
 		Views: make([]api.UserTag, 0),
 		Buys:  make([]api.UserTag, 0),
 	}
+
+	f := func(xs []api.UserTag) func(int) bool {
+		return func(i int) bool {
+			return xs[i].Time.Before(ut.Time)
+		}
+	}
 	modify := func(up *api.UserProfile) error {
 		switch ut.Action {
 		case api.VIEW:
-			up.Views = LimitSlice(InsertIntoSortedSlice(ut, up.Views, func(i int) bool {
-				return up.Views[i].Time.Before(ut.Time)
-			}), 200)
+			up.Views = HeadSlice(InsertIntoSortedSlice(ut, up.Views, f), UserTagPerActionLimit)
 		case api.BUY:
-			up.Buys = LimitSlice(InsertIntoSortedSlice(ut, up.Buys, func(i int) bool {
-				return up.Buys[i].Time.Before(ut.Time)
-			}), 200)
+			up.Buys = HeadSlice(InsertIntoSortedSlice(ut, up.Buys, f), UserTagPerActionLimit)
 		}
 
 		return nil
@@ -101,8 +104,8 @@ func (s *server) UserProfilesPostHandler(w http.ResponseWriter, r *http.Request)
 		return (x.Time.After(lowerBound) || x.Time.Equal(lowerBound)) && x.Time.Before(upperBound)
 	}
 
-	up.Buys = LimitSlice(FilterSlice(up.Buys, filterFunc), limit)
-	up.Views = LimitSlice(FilterSlice(up.Views, filterFunc), limit)
+	up.Buys = HeadSlice(FilterSlice(up.Buys, filterFunc), limit)
+	up.Views = HeadSlice(FilterSlice(up.Views, filterFunc), limit)
 
 	upr := api.UserProfileResponse{
 		Cookie:      cookie,
@@ -134,6 +137,23 @@ func (s *server) AggregatesPostHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
+func (s *server) HealthzHandler(w http.ResponseWriter, _ *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *server) ReadyzHandler(w http.ResponseWriter, _ *http.Request) {
+	var err error
+
+	if !s.upStore.Client.IsConnected() {
+		err = errors.New("readyz probe: can't connect with database")
+		klog.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func NewHTTPServer(addr string, userProfileStore *aerospike.AerospikeStore[api.UserProfile]) *http.Server {
 	s := &server{
 		upStore: userProfileStore,
@@ -150,6 +170,12 @@ func NewHTTPServer(addr string, userProfileStore *aerospike.AerospikeStore[api.U
 
 	r.HandleFunc("/aggregates", s.AggregatesPostHandler).
 		Methods(http.MethodPost)
+
+	r.HandleFunc("/healthz", s.HealthzHandler).
+		Methods(http.MethodGet)
+
+	r.HandleFunc("/readyz", s.ReadyzHandler).
+		Methods(http.MethodGet)
 
 	return &http.Server{
 		Addr:    addr,

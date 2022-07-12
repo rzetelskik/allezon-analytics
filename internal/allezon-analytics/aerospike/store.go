@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	as "github.com/aerospike/aerospike-client-go"
+	as "github.com/aerospike/aerospike-client-go/v6"
+	ast "github.com/aerospike/aerospike-client-go/v6/types"
 	"github.com/golang/snappy"
-	aserrors "github.com/rzetelskik/allezon-analytics/internal/allezon-analytics/aerospike/util"
 	"k8s.io/klog/v2"
 )
 
@@ -49,6 +49,8 @@ func (s *AerospikeStore[T]) convertRecord(record *as.Record, i *T) error {
 }
 
 func (s *AerospikeStore[T]) RMWWithGenCheck(key string, maxRetries int, i *T, modify func(*T) error) error {
+	var err error
+
 	asKey, err := s.getKey(key)
 	if err != nil {
 		return fmt.Errorf("can't get key: %w", err)
@@ -56,9 +58,10 @@ func (s *AerospikeStore[T]) RMWWithGenCheck(key string, maxRetries int, i *T, mo
 
 	var retryCount int
 	for retryCount = 0; retryCount < maxRetries; retryCount++ {
-		record, err := s.Client.Get(nil, asKey)
+		var record *as.Record
+		record, err = s.Client.Get(s.Policy, asKey)
 		if err != nil {
-			if !aserrors.IsKeyNotFoundError(err) {
+			if !errors.Is(err, as.ErrKeyNotFound) {
 				return fmt.Errorf("can't get record: %w", err)
 			}
 		} else {
@@ -89,7 +92,7 @@ func (s *AerospikeStore[T]) RMWWithGenCheck(key string, maxRetries int, i *T, mo
 		encoded := snappy.Encode(nil, data)
 
 		err = s.Client.PutBins(writePolicy, asKey, as.NewBin(s.Bin, encoded))
-		if aserrors.IsGenerationError(err) {
+		if errors.Is(err, &as.AerospikeError{ResultCode: ast.GENERATION_ERROR}) {
 			klog.V(3).InfoS("can't modify record due to generation mismatch", "key", key, "attempt", retryCount)
 			continue
 		}
@@ -113,7 +116,7 @@ func (s *AerospikeStore[T]) Get(key string, i *T) error {
 		return fmt.Errorf("can't get key: %w", err)
 	}
 
-	record, err := s.Client.Get(nil, asKey)
+	record, err := s.Client.Get(s.Policy, asKey)
 	if err != nil {
 		return fmt.Errorf("can't get record: %w", err)
 	}

@@ -21,7 +21,7 @@ func (a Action) MarshalJSON() ([]byte, error) {
 	case BUY:
 		s = `"BUY"`
 	default:
-		return nil, fmt.Errorf("action is not supported")
+		return nil, fmt.Errorf("invalid action")
 	}
 
 	return []byte(s), nil
@@ -42,7 +42,7 @@ func (a *Action) UnmarshalJSON(data []byte) error {
 	case "BUY":
 		*a = BUY
 	default:
-		return fmt.Errorf("action '%s' is invalid", s)
+		return fmt.Errorf("action '%s' is not supported", s)
 	}
 
 	return nil
