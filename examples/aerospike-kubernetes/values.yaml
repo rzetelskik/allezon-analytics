@@ -1,0 +1,657 @@
+# ------------------------------------------------------------------------------
+# Copyright 2012-2021 Aerospike, Inc.
+#
+# Portions may be licensed to Aerospike, Inc. under one or more contributor
+# license agreements.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+# ------------------------------------------------------------------------------
+
+###
+### Configuration file to set default values for Helm Chart deployment
+###
+
+### -------------------------------------
+### Statefulset and K8s config variables
+### -------------------------------------
+
+# Number of replicas
+dbReplicas: 5 # Also controls number of nodes in the aerospike cluster.
+
+# Number of seconds to wait after SIGTERM before force killing the pod.
+terminationGracePeriodSeconds: 600
+
+# liveness and readiness probe parameters (for aerospike containers)
+livenessProbe: {}
+  # initialDelaySeconds: 30
+  # periodSeconds: 30
+  # timeoutSeconds: 1
+  # successThreshold: 1
+# failureThreshold: 3
+readinessProbe: {}
+  # initialDelaySeconds: 30
+  # periodSeconds: 10
+  # timeoutSeconds: 1
+  # successThreshold: 1
+# failureThreshold: 3
+
+# K8s Cluster Service DNS Domain
+clusterServiceDnsDomain: cluster.local
+
+### -----------------------------------------
+### Aerospike server docker image
+### -----------------------------------------
+
+image:
+  repository: aerospike/aerospike-server
+  tag: 5.5.0.16
+
+### -------------------------------
+### Aerospike init container image
+### -------------------------------
+
+initImage:
+  repository: aerospike/aerospike-kubernetes-init
+  tag: latest
+
+
+### ---------------------------------
+### Aerospike related configurations
+### ---------------------------------
+
+# Auto generate and assign node-id(s) based on Pod's Ordinal Index.
+autoGenerateNodeIds: true
+# nodeIDPrefix: "a" # (optional) must be in hex only
+
+# Default Namespace related configuration
+
+aerospikeNamespace: "mimuw"
+aerospikeNamespaceMemoryGB: "6"
+aerospikeReplicationFactor: "3"
+aerospikeDefaultTTL: "0"
+
+# Aerospike TCP ports
+
+aerospikeClientPort: 3000
+aerospikeHeartbeatPort: 3002
+aerospikeFabricPort: 3001
+aerospikeInfoPort: 3003
+
+
+### -----------------------------------
+### Deployment specific configurations
+### -----------------------------------
+
+# Arguments that are passed to the Aerospike container
+# args: []
+
+# Rollout ConfigMap/Secrets changes on 'helm upgrade'
+# Alternatively, use 'kubectl rollout restart'
+autoRolloutConfig: false
+
+# Networking
+
+# HostNetworking
+hostNetwork:
+  enabled: false
+  useExternalIP: false
+
+# Enable NodePort Services (Type: NodePort) to expose aerospike statefulset (Use helm upgrade for scale up/down).
+nodePortServices:
+  enabled: false
+  useExternalIP: false
+  # Extra labels for the node port services (optional)
+  labels: {}
+  # Extra annotations for the node port services (optional)
+  annotations: {}
+
+# Enable LoadBalancer Services (Type: LoadBalancer) to expose aerospike statefulset (Use helm upgrade for scale up/down).
+loadBalancerServices:
+  enabled: false
+  # Extra labels for the load balancer services (optional)
+  labels: {}
+  # Extra annotations for load balancer services (optional)
+  annotations: {}
+  # cloud.google.com/load-balancer-type: "Internal"
+
+# Enable external IP Services (Type: ClusterIP) to expose aerospike statefulset (Use helm upgrade for scale up/down)
+externalIPServices:
+  enabled: false
+  externalIPEndpoints: []
+    # - IP: 10.160.15.199
+    #   Port: 7000
+    # - IP: 10.160.15.199
+    #   Port: 7001
+    # - IP: 10.160.15.199
+    #   Port: 7002
+    # - IP: 10.160.15.200
+    #   Port: 7003
+    # - IP: 10.160.15.200
+    #   Port: 7004
+    # - IP: 10.160.15.200
+    #   Port: 8000
+    # - IP: 10.160.15.217
+    #   Port: 8001
+    # - IP: 10.160.15.217
+    #   Port: 8002
+    # - IP: 10.160.15.217
+    #   Port: 8003
+    # - IP: 10.160.15.217
+  #   Port: 8004
+  # Extra labels for the external IP services (optional)
+  labels: {}
+  # Extra annotations for the external IP services (optional)
+  annotations: {}
+
+# Legacy network configurations (Don't worry, these are still supported)
+
+# hostNetworking: false
+# enableNodePortServices: false
+# enableLoadBalancerServices: false
+# enableExternalIpServices: false
+# externalIpEndpoints: []
+#   - IP: 10.160.15.199
+#     Port: 7000
+#   - IP: 10.160.15.199
+#     Port: 7001
+#   - IP: 10.160.15.199
+#     Port: 7002
+#   - IP: 10.160.15.200
+#     Port: 7003
+#   - IP: 10.160.15.200
+#     Port: 7004
+#   - IP: 10.160.15.200
+#     Port: 8000
+#   - IP: 10.160.15.217
+#     Port: 8001
+#   - IP: 10.160.15.217
+#     Port: 8002
+#   - IP: 10.160.15.217
+#     Port: 8003
+#   - IP: 10.160.15.217
+#     Port: 8004
+
+
+# Create and use a new ServiceAccount with a new ClusterRole for the Aerospike Statefulset deployment. If already have one, specify serviceAccountName below and set create=false.
+# This service account is also used for prometheus, grafana and alertmanager statefulsets when monitoring is enabled.
+rbac:
+  create: true
+  # serviceAccountName: default
+
+# Affinity / AntiAffinity configurations (For Aerospike Pods)
+# Setting 'antiAffinity' option will prevent two pods of the same release be scheduled on the same node.
+# 'antiAffinity' levels can be "off" (not set), "soft" (preferredDuringSchedulingIgnoredDuringExecution) and "hard" (requiredDuringSchedulingIgnoredDuringExecution)
+# Set a desired 'antiAffinityWeight' in range 1-100 for "soft" antiAffinity option.
+# 'affinity' option can be used to defined any custom nodeAffinity/podAffinity/podAntiAffinity rules.
+antiAffinity: "hard"
+antiAffinityWeight: 1
+affinity: {}
+  # nodeAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #     nodeSelectorTerms:
+  #     - matchExpressions:
+  #       - key: kubernetes.io/hostname
+  #         operator: In
+  #         values:
+#         - gke-gke-blr-default-pool-06a23412-0dkt
+
+# Tolerations and Taints (For Aerospike Pods)
+tolerations: []
+  # - key: "key1"
+  #   operator: "Equal"
+  #   value: "value1"
+  #   effect: "NoSchedule"
+  # - key: "key1"
+  #   operator: "Equal"
+  #   value: "value1"
+#   effect: "NoExecute"
+
+# Node Selector (For Aerospike Pods)
+nodeSelector: {}
+
+# Extra labels for the Aerospike StatefulSet
+labels: {}
+# Extra annotations for the Aerospike StatefulSet
+annotations: {}
+
+# Extra labels for the Aerospike pods
+podLabels: {}
+# Extra annotations for the Aerospike pods
+podAnnotations: {}
+
+# Define storage devices for aerospike nodes (pods)
+persistenceStorage:
+- mountPath: /opt/aerospike/data
+  enabled: true
+  name: datadir
+  storageClass: local-volumes
+  accessMode: ReadWriteOnce
+  volumeMode: Filesystem
+  size: 7Gi
+
+# Don't specify same 'mountPath' in both 'volumes' and 'persistenceStorage' configs.
+volumes: {}
+#  - mountPath: /opt/aerospike/data
+#    name: datadir
+#    enabled: false
+#    template:
+#      emptyDir: {}
+
+# Resources - limits / requests
+resources:
+  limits:
+    cpu: 1
+    memory: 1Gi
+  requests:
+    cpu: 1
+    memory: 1Gi
+
+# Aerospike pod security context
+podSecurityContext: {}
+
+# Aerospike container security context
+securityContext: {}
+
+# Aerospike configuration file as base64 encoded string
+# aerospikeConfFileBase64: <base64-encoded-aerospike-conf-file>
+
+### -----------------------------------------------------------
+### Dynamic configuration - Used during 'helm install...' etc.
+### -----------------------------------------------------------
+
+# Aerospike Configuration file path on helm "client" machine (from where the user is running 'helm install')
+# (new config)
+# aerospikeConfFile:
+
+# (old config)
+# confFilePath:
+
+# (Only when enableAerospikeMonitoring = true) Aerospike alert rules configuration file path on helm "client" machine (from where the user is running 'helm install')
+# (new config)
+# prometheus.aerospikeAlertRulesFile:
+
+# (old config)
+# prometheus.aerospikeAlertRulesFilePath:
+
+# (Only when enableAerospikeMonitoring = true) Alertmanager configuration file path on helm "client" machine (from where the user is running 'helm install')
+# (new config)
+# alertmanager.alertmanagerConfFile:
+
+# (old config)
+# alertmanager.alertmanagerConfFilePath:
+
+
+### -----------------------------------------
+### Aerospike Monitoring Stack Configuration
+### -----------------------------------------
+
+# Enable Aerospike Prometheus Exporter ONLY - sidecar - aerospike prometheus exporter.
+# If enableAerospikeMonitoring is set to true, no need to set enableAerospikePrometheusExporter to true.
+enableAerospikePrometheusExporter: false
+
+# Enable Aerospike Monitoring - sidecar prometheus exporter, Prometheus, Grafana, Alertmanager stack
+enableAerospikeMonitoring: true
+
+
+### --------------------------------------------
+### Aerospike Prometheus Exporter configuration
+### --------------------------------------------
+
+exporterImage:
+  repository: aerospike/aerospike-prometheus-exporter
+  tag: latest
+
+exporter: {}
+  # agentCertFile: ""
+  # agentKeyFile: ""
+  # metricLabels: "zone='asia-south1-a', platform='Google Kubernetes Engine'"
+  # agentBindHost: ""
+  # agentBindPort: 9145
+  # agentTimeout: 10
+  # agentLogFile: ""
+  # agentLogLevel: "info"
+  # httpBasicAuthUsername: ""
+  # httpBasicAuthPassword: ""
+  # aerospikeHost: "localhost"
+  # aerospikePort: 3000
+  # infoTimeout: 5
+  # namespaceMetricsAllowlist: ""
+  # setMetricsAllowlist: ""
+  # nodeMetricsAllowlist: ""
+  # xdrMetricsAllowlist: ""
+  # namespaceMetricsBlocklist: ""
+  # setMetricsBlocklist: ""
+  # nodeMetricsBlocklist: ""
+# xdrMetricsBlocklist: ""
+
+
+### -------------------------
+### Prometheus Configuration
+### -------------------------
+
+prometheus:
+  # Number of replicas for prometheus statefulset
+  replicas: 2
+
+  # Prometheus server port
+  serverPort: 9090
+
+  # Prometheus statefulset configs
+  terminationGracePeriodSeconds: 120
+  podManagementPolicy: "Parallel"
+  updateStrategy:
+    type: "RollingUpdate"
+
+  # liveness and readiness probe parameters (for prometheus containers)
+  livenessProbe: {}
+  # initialDelaySeconds: 30
+  # periodSeconds: 10
+  # timeoutSeconds: 10
+  # successThreshold: 1
+  # failureThreshold: 3
+  readinessProbe: {}
+  # initialDelaySeconds: 30
+  # periodSeconds: 10
+  # timeoutSeconds: 10
+  # successThreshold: 1
+  # failureThreshold: 3
+
+  # Prometheus scrape_interval and evaluation_interval
+  scrapeInterval: "15s"
+  evaluationInterval: "15s"
+
+  # Prometheus docker image
+  image:
+    repository: prom/prometheus
+    tag: latest
+
+  # Define storage for Prometheus data
+  persistenceStorage: {}
+    # mountPath: /data
+    # enabled: false
+    # name: prometheus-data
+    # storageClass: standard
+    # accessMode: ReadWriteOnce
+    # volumeMode: Filesystem
+  # size: 1Gi
+  volume: {}
+    # mountPath: /data
+    # name: prometheus-data
+    # template:
+  #   emptyDir: {}
+
+  # Resources - limits / requests
+  resources: {}
+    # limits:
+    #   cpu: 1
+    #   memory: 1Gi
+    # requests:
+    #   cpu: 1
+  #   memory: 1Gi
+
+  # Tolerations and Taints (For Prometheus Pods)
+  tolerations: []
+    # - key: "type"
+    #   operator: "Equal"
+    #   value: "monitoring"
+  #   effect: "NoSchedule"
+
+  # Node Selector (For Prometheus Pods)
+  nodeSelector: {}
+
+  # Extra labels for the Prometheus StatefulSet
+  labels: {}
+  # Extra annotations for the Prometheus StatefulSet
+  annotations: {}
+
+  # Extra labels for the Prometheus pods
+  podLabels: {}
+  # Extra annotations for the Prometheus pods
+  podAnnotations: {}
+
+  # Affinity / AntiAffinity configurations (For Prometheus Pods)
+  # Setting 'antiAffinity' option will prevent two pods of the same release be scheduled on the same node.
+  # 'antiAffinity' levels can be "off" (not set), "soft" (preferredDuringSchedulingIgnoredDuringExecution) and "hard" (requiredDuringSchedulingIgnoredDuringExecution)
+  # Set a desired 'antiAffinityWeight' in range 1-100 for "soft" antiAffinity option.
+  # 'affinity' option can be used to defined any custom nodeAffinity/podAffinity/podAntiAffinity rules.
+  antiAffinity: "hard"
+  antiAffinityWeight: 1
+  affinity: {}
+    # nodeAffinity:
+    #   requiredDuringSchedulingIgnoredDuringExecution:
+    #     nodeSelectorTerms:
+    #     - matchExpressions:
+    #       - key: kubernetes.io/hostname
+    #         operator: In
+    #         values:
+  #         - gke-gke-blr-default-pool-06a23412-0dkt
+
+  # Aerospike alert rules configuration file path on helm "client" machine (from where the user is running 'helm install')
+  # (new config)
+  # aerospikeAlertRulesFile:
+  # (old config)
+  # aerospikeAlertRulesFilePath:
+
+  # Alert rules file as base64 encoded string
+  # aerospikeAlertRulesFileBase64:
+
+
+### ----------------------
+### Grafana Configuration
+### ----------------------
+
+grafana:
+  # Number of replicas for grafana statefulset
+  replicas: 1
+
+  # Grafana server http_port
+  httpPort: 3000
+
+  # Grafana docker image
+  image:
+    repository: grafana/grafana
+    tag: latest
+
+  # Grafana statefulset configs
+  terminationGracePeriodSeconds: 120
+
+  # liveness and readiness probe parameters (for grafana containers)
+  livenessProbe: {}
+  # initialDelaySeconds: 30
+  # periodSeconds: 10
+  # timeoutSeconds: 10
+  # successThreshold: 1
+  # failureThreshold: 10
+  readinessProbe: {}
+  # initialDelaySeconds: 30
+  # periodSeconds: 10
+  # timeoutSeconds: 10
+  # successThreshold: 1
+  # failureThreshold: 10
+
+  # Define storage for grafana data
+  persistenceStorage:
+  # mountPath: /var/lib/grafana
+  # enabled: false
+  # name: grafana-data
+  # storageClass: standard
+  # accessMode: ReadWriteOnce
+  # volumeMode: Filesystem
+  # size: 1Gi
+  volume:
+    mountPath: /var/lib/grafana
+    name: grafana-data
+    template:
+      emptyDir: {}
+
+  # Grafana plugins to install at startup
+  plugins: "camptocamp-prometheus-alertmanager-datasource"
+
+  # Grafana username and password
+  user: "admin"
+  password: "admin"
+
+  # Resources - limits / requests
+  resources: {}
+    # limits:
+    #   cpu: 1
+    #   memory: 1Gi
+    # requests:
+    #   cpu: 1
+  #   memory: 1Gi
+
+  # Tolerations and Taints (For Grafana Pods)
+  tolerations: []
+    # - key: "type"
+    #   operator: "Equal"
+    #   value: "monitoring"
+  #   effect: "NoSchedule"
+
+  # Node Selector (For Grafana Pods)
+  nodeSelector: {}
+
+  # Extra labels for the Grafana StatefulSet
+  labels: {}
+  # Extra annotations for the Grafana StatefulSet
+  annotations: {}
+
+  # Extra labels for the Grafana pods
+  podLabels: {}
+  # Extra annotations for the Grafana pods
+  podAnnotations: {}
+
+  # Affinity / AntiAffinity configurations (For Grafana Pods)
+  # Setting 'antiAffinity' option will prevent two pods of the same release be scheduled on the same node.
+  # 'antiAffinity' levels can be "off" (not set), "soft" (preferredDuringSchedulingIgnoredDuringExecution) and "hard" (requiredDuringSchedulingIgnoredDuringExecution)
+  # Set a desired 'antiAffinityWeight' in range 1-100 for "soft" antiAffinity option.
+  # 'affinity' option can be used to defined any custom nodeAffinity/podAffinity/podAntiAffinity rules.
+  antiAffinity: "hard"
+  antiAffinityWeight: 1
+  affinity: {}
+    # nodeAffinity:
+    #   requiredDuringSchedulingIgnoredDuringExecution:
+    #     nodeSelectorTerms:
+    #     - matchExpressions:
+    #       - key: kubernetes.io/hostname
+    #         operator: In
+    #         values:
+  #         - gke-gke-blr-default-pool-06a23412-0dkt
+
+
+### ---------------------------
+### Alertmanager Configuration
+### ---------------------------
+
+alertmanager:
+  # Number of replicas for alertmanager statefulset
+  replicas: 1
+
+  # Alertmanager web port and gossip port
+  webPort: 9093
+  meshPort: 9094
+
+  # Alertmanager statefulset configs
+  terminationGracePeriodSeconds: 120
+  podManagementPolicy: "OrderedReady"
+  updateStrategy:
+    type: "RollingUpdate"
+
+  # liveness and readiness probe parameters (for grafana containers)
+  livenessProbe: {}
+  # initialDelaySeconds: 30
+  # periodSeconds: 10
+  # timeoutSeconds: 10
+  # successThreshold: 1
+  # failureThreshold: 10
+  readinessProbe: {}
+  # initialDelaySeconds: 30
+  # periodSeconds: 10
+  # timeoutSeconds: 10
+  # successThreshold: 1
+  # failureThreshold: 10
+
+  # Alertmanager docker image
+  image:
+    repository: prom/alertmanager
+    tag: latest
+
+  # Alertmanager logging level
+  loglevel: info
+
+  # Define storage for alertmanager data
+  persistenceStorage:
+  # mountPath: /data
+  # enabled: false
+  # name: alertmanager-data
+  # storageClass: standard
+  # accessMode: ReadWriteOnce
+  # volumeMode: Filesystem
+  # size: 1Gi
+  volume:
+    mountPath: /data
+    name: alertmanager-data
+    template:
+      emptyDir: {}
+
+  # Resources - limits / requests
+  resources: {}
+    # limits:
+    #   cpu: 1
+    #   memory: 1Gi
+    # requests:
+    #   cpu: 1
+  #   memory: 1Gi
+
+  # Tolerations and Taints (For Alertmanager Pods)
+  tolerations: []
+    # - key: "type"
+    #   operator: "Equal"
+    #   value: "monitoring"
+  #   effect: "NoSchedule"
+
+  # Node Selector (For Alertmanager Pods)
+  nodeSelector: {}
+
+  # Extra labels for the Alertmanager StatefulSet
+  labels: {}
+  # Extra annotations for the Alertmanager StatefulSet
+  annotations: {}
+
+  # Extra labels for the Alertmanager pods
+  podLabels: {}
+  # Extra annotations for the Alertmanager pods
+  podAnnotations: {}
+
+  # Affinity / AntiAffinity configurations (For Alertmanager Pods)
+  # Setting 'antiAffinity' option will prevent two pods of the same release be scheduled on the same node.
+  # 'antiAffinity' levels can be "off" (not set), "soft" (preferredDuringSchedulingIgnoredDuringExecution) and "hard" (requiredDuringSchedulingIgnoredDuringExecution)
+  # Set a desired 'antiAffinityWeight' in range 1-100 for "soft" antiAffinity option.
+  # 'affinity' option can be used to defined any custom nodeAffinity/podAffinity/podAntiAffinity rules.
+  antiAffinity: "hard"
+  antiAffinityWeight: 1
+  affinity: {}
+    # nodeAffinity:
+    #   requiredDuringSchedulingIgnoredDuringExecution:
+    #     nodeSelectorTerms:
+    #     - matchExpressions:
+    #       - key: kubernetes.io/hostname
+    #         operator: In
+    #         values:
+  #         - gke-gke-blr-default-pool-06a23412-0dkt
+
+  # Alertmanager configuration file path on helm "client" machine (from where the user is running 'helm install')
+  # (new config)
+  # alertmanagerConfFile:
+  # (old config)
+  # alertmanagerConfFilePath:
+
+  # Alertmanager configuration file as base64 encoded string
+  # alertmanagerConfFileBase64:
