@@ -3,11 +3,10 @@ module github.com/rzetelskik/allezon-analytics
 go 1.18
 
 require (
-	github.com/aerospike/aerospike-client-go v4.5.2+incompatible
+	github.com/aerospike/aerospike-client-go/v6 v6.2.0
 	github.com/golang/snappy v0.0.4
-	github.com/google/go-cmp v0.5.8
+	github.com/google/go-cmp v0.5.5
 	github.com/gorilla/mux v1.8.0
-	golang.org/x/exp v0.0.0-20220613132600-b0d781184e0d
 	k8s.io/klog/v2 v2.70.0
 )
 
