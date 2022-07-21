@@ -34,13 +34,13 @@ livenessProbe: {}
   # initialDelaySeconds: 30
   # periodSeconds: 30
   # timeoutSeconds: 1
-  # successThreshold: 1
+# successThreshold: 1
 # failureThreshold: 3
 readinessProbe: {}
   # initialDelaySeconds: 30
   # periodSeconds: 10
   # timeoutSeconds: 1
-  # successThreshold: 1
+# successThreshold: 1
 # failureThreshold: 3
 
 # K8s Cluster Service DNS Domain
@@ -74,7 +74,7 @@ autoGenerateNodeIds: true
 # Default Namespace related configuration
 
 aerospikeNamespace: "mimuw"
-aerospikeNamespaceMemoryGB: "6"
+aerospikeNamespaceMemoryGB: "15"
 aerospikeReplicationFactor: "3"
 aerospikeDefaultTTL: "0"
 
@@ -144,7 +144,7 @@ externalIPServices:
     #   Port: 8002
     # - IP: 10.160.15.217
     #   Port: 8003
-    # - IP: 10.160.15.217
+  # - IP: 10.160.15.217
   #   Port: 8004
   # Extra labels for the external IP services (optional)
   labels: {}
@@ -200,7 +200,7 @@ affinity: {}
   #     - matchExpressions:
   #       - key: kubernetes.io/hostname
   #         operator: In
-  #         values:
+#         values:
 #         - gke-gke-blr-default-pool-06a23412-0dkt
 
 # Tolerations and Taints (For Aerospike Pods)
@@ -211,7 +211,7 @@ tolerations: []
   #   effect: "NoSchedule"
   # - key: "key1"
   #   operator: "Equal"
-  #   value: "value1"
+#   value: "value1"
 #   effect: "NoExecute"
 
 # Node Selector (For Aerospike Pods)
@@ -235,7 +235,7 @@ persistenceStorage:
   storageClass: local-volumes
   accessMode: ReadWriteOnce
   volumeMode: Filesystem
-  size: 7Gi
+  size: 16Gi
 
 # Don't specify same 'mountPath' in both 'volumes' and 'persistenceStorage' configs.
 volumes: {}
@@ -249,10 +249,10 @@ volumes: {}
 resources:
   limits:
     cpu: 1
-    memory: 1Gi
+    memory: 4Gi
   requests:
     cpu: 1
-    memory: 1Gi
+    memory: 4Gi
 
 # Aerospike pod security context
 podSecurityContext: {}
@@ -329,7 +329,7 @@ exporter: {}
   # xdrMetricsAllowlist: ""
   # namespaceMetricsBlocklist: ""
   # setMetricsBlocklist: ""
-  # nodeMetricsBlocklist: ""
+# nodeMetricsBlocklist: ""
 # xdrMetricsBlocklist: ""
 
 
@@ -380,12 +380,12 @@ prometheus:
     # name: prometheus-data
     # storageClass: standard
     # accessMode: ReadWriteOnce
-    # volumeMode: Filesystem
+  # volumeMode: Filesystem
   # size: 1Gi
   volume: {}
     # mountPath: /data
     # name: prometheus-data
-    # template:
+  # template:
   #   emptyDir: {}
 
   # Resources - limits / requests
@@ -394,14 +394,14 @@ prometheus:
     #   cpu: 1
     #   memory: 1Gi
     # requests:
-    #   cpu: 1
+  #   cpu: 1
   #   memory: 1Gi
 
   # Tolerations and Taints (For Prometheus Pods)
   tolerations: []
     # - key: "type"
     #   operator: "Equal"
-    #   value: "monitoring"
+  #   value: "monitoring"
   #   effect: "NoSchedule"
 
   # Node Selector (For Prometheus Pods)
@@ -431,7 +431,7 @@ prometheus:
     #     - matchExpressions:
     #       - key: kubernetes.io/hostname
     #         operator: In
-    #         values:
+  #         values:
   #         - gke-gke-blr-default-pool-06a23412-0dkt
 
   # Aerospike alert rules configuration file path on helm "client" machine (from where the user is running 'helm install')
@@ -505,14 +505,14 @@ grafana:
     #   cpu: 1
     #   memory: 1Gi
     # requests:
-    #   cpu: 1
+  #   cpu: 1
   #   memory: 1Gi
 
   # Tolerations and Taints (For Grafana Pods)
   tolerations: []
     # - key: "type"
     #   operator: "Equal"
-    #   value: "monitoring"
+  #   value: "monitoring"
   #   effect: "NoSchedule"
 
   # Node Selector (For Grafana Pods)
@@ -542,7 +542,7 @@ grafana:
     #     - matchExpressions:
     #       - key: kubernetes.io/hostname
     #         operator: In
-    #         values:
+  #         values:
   #         - gke-gke-blr-default-pool-06a23412-0dkt
 
 
@@ -607,14 +607,14 @@ alertmanager:
     #   cpu: 1
     #   memory: 1Gi
     # requests:
-    #   cpu: 1
+  #   cpu: 1
   #   memory: 1Gi
 
   # Tolerations and Taints (For Alertmanager Pods)
   tolerations: []
     # - key: "type"
     #   operator: "Equal"
-    #   value: "monitoring"
+  #   value: "monitoring"
   #   effect: "NoSchedule"
 
   # Node Selector (For Alertmanager Pods)
@@ -644,7 +644,7 @@ alertmanager:
     #     - matchExpressions:
     #       - key: kubernetes.io/hostname
     #         operator: In
-    #         values:
+  #         values:
   #         - gke-gke-blr-default-pool-06a23412-0dkt
 
   # Alertmanager configuration file path on helm "client" machine (from where the user is running 'helm install')
