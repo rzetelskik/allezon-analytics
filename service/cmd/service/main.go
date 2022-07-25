@@ -2,16 +2,15 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"flag"
-	"fmt"
 	as "github.com/aerospike/aerospike-client-go/v6"
 	"github.com/lovoo/goka"
 	"github.com/lovoo/goka/codec"
 	"github.com/rzetelskik/allezon-analytics/service/internal/service/aerospike"
 	"github.com/rzetelskik/allezon-analytics/service/internal/service/server"
 	"github.com/rzetelskik/allezon-analytics/shared/pkg/api"
+	"github.com/rzetelskik/allezon-analytics/shared/pkg/kafka"
 	"k8s.io/klog/v2"
 	"log"
 	"net/http"
@@ -26,27 +25,6 @@ import (
 var (
 	bootstrap = []string{"kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092"}
 )
-
-type UserAggregates struct {
-	Count    int64 `json:"count"`
-	SumPrice int64 `json:"sum_price"`
-}
-
-type UserAggregatesCodec struct{}
-
-func (c *UserAggregatesCodec) Encode(v interface{}) ([]byte, error) {
-	return json.Marshal(v)
-}
-
-func (c *UserAggregatesCodec) Decode(data []byte) (interface{}, error) {
-	var ua UserAggregates
-	err := json.Unmarshal(data, &ua)
-	if err != nil {
-		return nil, fmt.Errorf("can't unmarshal data: %w", err)
-	}
-
-	return ua, nil
-}
 
 func main() {
 	var err error
@@ -96,17 +74,54 @@ func main() {
 		Set:       "user_profile",
 		Bin:       "data",
 	}
+	//
+	//gokaConfig := goka.DefaultConfig()
+	//
+	//tmc := goka.NewTopicManagerConfig()
+	//tmc.Table.Replication = 1
+	//tmc.Stream.Replication = 1
+	//tmc.Stream.Retention = 24 * time.Hour
+	//tmc.MismatchBehavior = goka.TMConfigMismatchBehaviorFail
+	//
+	//tm, err := goka.NewTopicManager(bootstrap, gokaConfig, tmc)
+	//if err != nil {
+	//	klog.Fatalf("can't create new goka topic manager: %v", err)
+	//}
+	//
+	//err = tm.EnsureStreamExists(string(kafka.UserProfileTopic), 1)
+	//if err != nil {
+	//	klog.Fatalf("can't ensure stream \"%s\" exists: %v", kafka.UserProfileTopic, err)
+	//}
+	//
+	//err = tm.EnsureTableExists(string(kafka.SinkTable), 1)
+	//if err != nil {
+	//	klog.Fatalf("can't ensure stream \"%s\" exists: %v", kafka.SinkTable, err)
+	//}
 
-	var topic goka.Stream = "kafka-topic"
-	emitter, err := goka.NewEmitter(bootstrap, topic, new(codec.Bytes))
+	emitter, err := goka.NewEmitter(
+		bootstrap,
+		kafka.UserProfileTopic,
+		new(codec.Bytes),
+		//goka.WithEmitterTopicManagerBuilder(goka.TopicManagerBuilderWithTopicManagerConfig(tmc)),
+		//goka.WithEmitterProducerBuilder(goka.ProducerBuilderWithConfig(gokaConfig)),
+	)
 	if err != nil {
 		klog.Fatalf("can't create emitter: %v", err)
 	}
-	defer emitter.Finish()
+	defer func() {
+		err := emitter.Finish()
+		if err != nil {
+			klog.Errorf("can't finish emitter: %v", err)
+		}
+	}()
 
-	var group goka.Group = "collector"
-	var table = goka.GroupTable(group)
-	view, err := goka.NewView(bootstrap, table, new(UserAggregatesCodec))
+	view, err := goka.NewView(
+		bootstrap,
+		kafka.SinkTable,
+		new(api.UserAggregatesCodec),
+		//goka.WithViewTopicManagerBuilder(goka.TopicManagerBuilderWithTopicManagerConfig(tmc)),
+		//goka.WithViewConsumerSaramaBuilder(goka.SaramaConsumerBuilderWithConfig(gokaConfig)),
+	)
 	if err != nil {
 		klog.Fatalf("can't create view: %v", err)
 	}

@@ -1,8 +1,6 @@
 package server
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,6 +9,7 @@ import (
 	"github.com/lovoo/goka"
 	"github.com/rzetelskik/allezon-analytics/service/internal/service/aerospike"
 	"github.com/rzetelskik/allezon-analytics/shared/pkg/api"
+	"github.com/rzetelskik/allezon-analytics/shared/pkg/util"
 	"io"
 	"k8s.io/klog/v2"
 	"net/http"
@@ -139,11 +138,6 @@ func (s *server) UserProfilesPostHandler(w http.ResponseWriter, r *http.Request)
 	w.Write(payload)
 }
 
-type UserAggregates struct {
-	Count    int64 `json:"count"`
-	SumPrice int64 `json:"sum_price"`
-}
-
 func (s *server) AggregatesPostHandler(w http.ResponseWriter, r *http.Request) {
 	values := r.URL.Query()
 
@@ -165,9 +159,11 @@ func (s *server) AggregatesPostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "required parameter 'action' is missing", http.StatusBadRequest)
 		return
 	}
-	action := values.Get("action")
-
-	// FIXME: validate action
+	action, err := api.ParseAction(values.Get("action"))
+	if err != nil {
+		http.Error(w, fmt.Errorf("required parameter 'action' is invalid: %v", err).Error(), http.StatusBadRequest)
+		return
+	}
 
 	if !values.Has("aggregates") {
 		http.Error(w, "required parameter 'action' is missing", http.StatusBadRequest)
@@ -208,11 +204,7 @@ func (s *server) AggregatesPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for b := lowerBound; b.Before(upperBound); b = b.Add(time.Minute) {
-		key := b.String() + action + origin + brand_id + category_id
-		klog.InfoS("key", key)
-		h := sha256.New()
-		h.Write([]byte(key))
-		hash := hex.EncodeToString(h.Sum(nil))
+		hash := util.GetAggregateHash(b, action, origin, brand_id, category_id)
 
 		v, err := s.view.Get(hash)
 		if err != nil {
@@ -222,16 +214,16 @@ func (s *server) AggregatesPostHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		ua := UserAggregates{
+		ua := api.UserAggregates{
 			Count:    0,
 			SumPrice: 0,
 		}
 		if v != nil {
-			klog.InfoS("hurray, not nil!")
-			ua = v.(UserAggregates)
+			ua = v.(api.UserAggregates)
+			klog.Infof("value not nil! Count %d, sumPrice %d", ua.Count, ua.SumPrice)
 		}
 
-		row := []string{b.Format("2006-01-02T15:04:05"), action}
+		row := []string{b.Format("2006-01-02T15:04:05"), action.String()}
 		if len(origin) > 0 {
 			row = append(row, origin)
 		}

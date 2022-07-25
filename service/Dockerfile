@@ -2,10 +2,12 @@ FROM golang:1.18 as build
 
 WORKDIR /go/src/github.com/rzetelskik/allezon-analytics/
 COPY shared/ shared/
-
-COPY service/ service/
+COPY service/go.mod service/go.sum service/
 
 WORKDIR /go/src/github.com/rzetelskik/allezon-analytics/service/
+RUN go mod download
+
+COPY service/ ./
 RUN make build
 
 FROM ubuntu:21.04

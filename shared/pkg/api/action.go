@@ -5,15 +5,25 @@ import (
 	"fmt"
 )
 
-type Action int
-
 const (
-	VIEW Action = iota
+	VIEW Action = iota + 1
 	BUY
 )
 
+type Action int
+
+var actionToString = map[Action]string{
+	VIEW: "VIEW",
+	BUY:  "BUY",
+}
+
+var stringToAction = map[string]Action{
+	"VIEW": VIEW,
+	"BUY":  BUY,
+}
+
 func (a Action) MarshalJSON() ([]byte, error) {
-	return []byte(a.String()), nil
+	return json.Marshal(a.String())
 }
 
 func (a *Action) UnmarshalJSON(data []byte) error {
@@ -25,27 +35,23 @@ func (a *Action) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("can't unmarshal to string: %w", err)
 	}
 
-	switch s {
-	case "VIEW":
-		*a = VIEW
-	case "BUY":
-		*a = BUY
-	default:
-		return fmt.Errorf("action '%s' is not supported", s)
+	*a, err = ParseAction(s)
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (a Action) String() string {
-	var s string
-
-	switch a {
-	case VIEW:
-		s = `"VIEW"`
-	case BUY:
-		s = `"BUY"`
+func ParseAction(s string) (Action, error) {
+	a, ok := stringToAction[s]
+	if !ok {
+		return Action(0), fmt.Errorf("%q is not a valid action", s)
 	}
 
-	return s
+	return a, nil
+}
+
+func (a Action) String() string {
+	return actionToString[a]
 }

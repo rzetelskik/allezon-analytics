@@ -9,7 +9,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/lovoo/goka v1.1.7
 	github.com/rzetelskik/allezon-analytics/shared v0.0.0
-	k8s.io/klog/v2 v2.70.0
+	k8s.io/klog/v2 v2.70.1
 )
 
 require github.com/Shopify/sarama v1.33.0 // indirect
@@ -42,4 +42,4 @@ require (
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f // indirect
 )
 
-replace github.com/rzetelskik/allezon-analytics/shared v0.0.0 => ../shared
+replace github.com/rzetelskik/allezon-analytics/shared => ../shared

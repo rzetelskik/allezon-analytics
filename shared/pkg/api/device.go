@@ -18,16 +18,16 @@ func (d Device) MarshalJSON() ([]byte, error) {
 
 	switch d {
 	case PC:
-		s = `"PC"`
+		s = "PC"
 	case MOBILE:
-		s = `"MOBILE"`
+		s = "MOBILE"
 	case TV:
-		s = `"TV"`
+		s = "TV"
 	default:
 		return nil, fmt.Errorf("invalid device")
 	}
 
-	return []byte(s), nil
+	return json.Marshal(s)
 }
 
 func (d *Device) UnmarshalJSON(data []byte) error {

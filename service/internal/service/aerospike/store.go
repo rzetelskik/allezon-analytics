@@ -84,7 +84,7 @@ func (s *AerospikeStore[T]) RMWWithGenCheck(key string, maxRetries int, i *T, mo
 			writePolicy.Generation = record.Generation
 		}
 
-		data, err := json.Marshal(i)
+		data, err := json.Marshal(*i)
 		if err != nil {
 			return fmt.Errorf("can't marshal data: %w", err)
 		}
