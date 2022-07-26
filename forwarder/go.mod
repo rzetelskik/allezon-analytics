@@ -3,6 +3,7 @@ module github.com/rzetelskik/allezon-analytics/forwarder
 go 1.18
 
 require (
+	github.com/google/go-cmp v0.5.7
 	github.com/lovoo/goka v1.1.7
 	k8s.io/klog/v2 v2.70.1
 )

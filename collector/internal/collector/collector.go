@@ -14,13 +14,14 @@ func Collect(ctx goka.Context, msg interface{}) {
 		ua = v.(api.UserAggregates)
 	}
 
-	price, ok := msg.(int64)
+	ut, ok := msg.(*api.UserTag)
 	if !ok {
-		klog.Fatalf("received message is not of type int64")
+		klog.Errorf("received message's type is not of type UserTag")
+		return
 	}
 
 	ua.Count += 1
-	ua.SumPrice += price
+	ua.SumPrice += int64(ut.Product.Price)
 
 	ctx.SetValue(ua)
 }

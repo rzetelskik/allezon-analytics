@@ -15,7 +15,6 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -48,9 +47,9 @@ func (s *server) UserTagsPostHandler(w http.ResponseWriter, r *http.Request) {
 		Buys:  make([]api.UserTag, 0),
 	}
 
-	f := func(xs []api.UserTag) func(int) bool {
+	f := func(x api.UserTag, xs []api.UserTag) func(int) bool {
 		return func(i int) bool {
-			return xs[i].Time.Before(ut.Time)
+			return xs[i].Time.Before(x.Time)
 		}
 	}
 	modify := func(up *api.UserProfile) error {
@@ -153,6 +152,8 @@ func (s *server) AggregatesPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// FIXME: validate time ranges
+
 	// FIXME: check for max time range
 
 	if !values.Has("action") {
@@ -170,12 +171,19 @@ func (s *server) AggregatesPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	aggregates := values["aggregates"]
-	// FIXME: validate aggregates
+	aggregates := make([]api.Aggregate, 0)
+	for _, s := range values["aggregates"] {
+		a, err := api.ParseAggregate(s)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		aggregates = append(aggregates, a)
+	}
 
-	origin := values.Get("origin")           // FIXME
-	brand_id := values.Get("brand_id")       // FIXME
-	category_id := values.Get("category_id") // FIXME
+	origin := values.Get("origin")
+	brand_id := values.Get("brand_id")
+	category_id := values.Get("category_id")
 
 	expected, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
@@ -186,67 +194,51 @@ func (s *server) AggregatesPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ar := api.AggregatesResponse{
-		Columns: []string{"1m_bucket", "action"},
-		Rows:    [][]string{},
-	}
+	columns := []api.AggregateColumn{api.BUCKET, api.ACTION}
 	if len(origin) > 0 {
-		ar.Columns = append(ar.Columns, "origin")
+		columns = append(columns, api.ORIGIN)
 	}
 	if len(brand_id) > 0 {
-		ar.Columns = append(ar.Columns, "brand_id")
+		columns = append(columns, api.BRAND_ID)
 	}
 	if len(category_id) > 0 {
-		ar.Columns = append(ar.Columns, "category_id")
+		columns = append(columns, api.CATEGORY_ID)
 	}
 	for _, a := range aggregates {
-		ar.Columns = append(ar.Columns, strings.ToLower(a))
+		columns = append(columns, api.AggregateToAggregateColumn(a))
 	}
 
+	rows := make([]api.AggregateRow, 0)
 	for b := lowerBound; b.Before(upperBound); b = b.Add(time.Minute) {
 		hash := util.GetAggregateHash(b, action, origin, brand_id, category_id)
 
 		v, err := s.view.Get(hash)
 		if err != nil {
-			// FIXME: err aggregate
-			// FIXME: check for error type and break
-			klog.ErrorS(err, "tmp error")
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		ua := api.UserAggregates{
-			Count:    0,
-			SumPrice: 0,
-		}
+
+		ua := api.UserAggregates{}
 		if v != nil {
 			ua = v.(api.UserAggregates)
-			klog.Infof("value not nil! Count %d, sumPrice %d", ua.Count, ua.SumPrice)
 		}
 
-		row := []string{b.Format("2006-01-02T15:04:05"), action.String()}
-		if len(origin) > 0 {
-			row = append(row, origin)
+		r := api.AggregateRow{
+			Bucket:     api.BucketTime(b),
+			Action:     action,
+			Origin:     origin,
+			BrandID:    brand_id,
+			CategoryID: category_id,
+			Count:      ua.Count,
+			SumPrice:   ua.SumPrice,
 		}
-		if len(brand_id) > 0 {
-			row = append(row, brand_id)
-		}
-		if len(category_id) > 0 {
-			row = append(row, category_id)
-		}
-		for _, a := range aggregates {
-			var i int64
-			switch a {
-			case "COUNT":
-				i = ua.Count
-			case "SUM_PRICE":
-				i = ua.SumPrice
-			}
-			row = append(row, strconv.FormatInt(i, 10))
-		}
-
-		ar.Rows = append(ar.Rows, row)
+		rows = append(rows, r)
 	}
-	klog.InfoS("created aggregate", "aggregate", ar)
+
+	ar := api.AggregateResponse{
+		Columns: columns,
+		Rows:    rows,
+	}
 
 	data, err := json.Marshal(ar)
 	if err != nil {

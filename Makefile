@@ -31,7 +31,7 @@ push-image-forwarder: image-forwarder
 	docker push $(FORWARDER_IMAGE_REF)
 .PHONY: push-image-forwarder
 
-push-image-forwarder: image-collector
+push-image-collector: image-collector
 	docker push $(COLLECTOR_IMAGE_REF)
 .PHONY: push-image-collector
 

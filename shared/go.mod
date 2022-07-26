@@ -2,10 +2,7 @@ module github.com/rzetelskik/allezon-analytics/shared
 
 go 1.18
 
-require (
-	github.com/lovoo/goka v1.1.7
-	k8s.io/klog/v2 v2.70.1
-)
+require github.com/lovoo/goka v1.1.7
 
 require (
 	github.com/Shopify/sarama v1.33.0 // indirect
@@ -13,7 +10,6 @@ require (
 	github.com/eapache/go-resiliency v1.2.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
-	github.com/go-logr/logr v1.2.0 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/mock v1.4.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect

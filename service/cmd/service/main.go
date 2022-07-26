@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"github.com/Shopify/sarama"
 	as "github.com/aerospike/aerospike-client-go/v6"
 	"github.com/lovoo/goka"
 	"github.com/lovoo/goka/codec"
@@ -74,36 +75,41 @@ func main() {
 		Set:       "user_profile",
 		Bin:       "data",
 	}
-	//
-	//gokaConfig := goka.DefaultConfig()
-	//
-	//tmc := goka.NewTopicManagerConfig()
-	//tmc.Table.Replication = 1
-	//tmc.Stream.Replication = 1
-	//tmc.Stream.Retention = 24 * time.Hour
-	//tmc.MismatchBehavior = goka.TMConfigMismatchBehaviorFail
-	//
-	//tm, err := goka.NewTopicManager(bootstrap, gokaConfig, tmc)
-	//if err != nil {
-	//	klog.Fatalf("can't create new goka topic manager: %v", err)
-	//}
-	//
-	//err = tm.EnsureStreamExists(string(kafka.UserProfileTopic), 1)
-	//if err != nil {
-	//	klog.Fatalf("can't ensure stream \"%s\" exists: %v", kafka.UserProfileTopic, err)
-	//}
-	//
-	//err = tm.EnsureTableExists(string(kafka.SinkTable), 1)
-	//if err != nil {
-	//	klog.Fatalf("can't ensure stream \"%s\" exists: %v", kafka.SinkTable, err)
-	//}
+
+	gokaConfig := goka.DefaultConfig()
+	gokaConfig.Producer.Idempotent = true
+	gokaConfig.Producer.RequiredAcks = sarama.WaitForAll
+	gokaConfig.Net.MaxOpenRequests = 1
+
+	tmc := goka.NewTopicManagerConfig()
+	tmc.Table.Replication = 1
+	tmc.Table.CleanupPolicy = "delete"
+	tmc.Stream.Replication = 1
+	tmc.Stream.CleanupPolicy = "delete"
+	tmc.Stream.Retention = 24 * time.Hour
+	tmc.MismatchBehavior = goka.TMConfigMismatchBehaviorFail
+
+	tm, err := goka.NewTopicManager(bootstrap, gokaConfig, tmc)
+	if err != nil {
+		klog.Fatalf("can't create new goka topic manager: %v", err)
+	}
+
+	err = tm.EnsureStreamExists(string(kafka.UserProfileTopic), 1)
+	if err != nil {
+		klog.Fatalf("can't ensure stream \"%s\" exists: %v", kafka.UserProfileTopic, err)
+	}
+
+	err = tm.EnsureTableExists(string(kafka.SinkTable), 1)
+	if err != nil {
+		klog.Fatalf("can't ensure stream \"%s\" exists: %v", kafka.SinkTable, err)
+	}
 
 	emitter, err := goka.NewEmitter(
 		bootstrap,
 		kafka.UserProfileTopic,
 		new(codec.Bytes),
-		//goka.WithEmitterTopicManagerBuilder(goka.TopicManagerBuilderWithTopicManagerConfig(tmc)),
-		//goka.WithEmitterProducerBuilder(goka.ProducerBuilderWithConfig(gokaConfig)),
+		goka.WithEmitterTopicManagerBuilder(goka.TopicManagerBuilderWithTopicManagerConfig(tmc)),
+		goka.WithEmitterProducerBuilder(goka.ProducerBuilderWithConfig(gokaConfig)),
 	)
 	if err != nil {
 		klog.Fatalf("can't create emitter: %v", err)
@@ -119,8 +125,8 @@ func main() {
 		bootstrap,
 		kafka.SinkTable,
 		new(api.UserAggregatesCodec),
-		//goka.WithViewTopicManagerBuilder(goka.TopicManagerBuilderWithTopicManagerConfig(tmc)),
-		//goka.WithViewConsumerSaramaBuilder(goka.SaramaConsumerBuilderWithConfig(gokaConfig)),
+		goka.WithViewTopicManagerBuilder(goka.TopicManagerBuilderWithTopicManagerConfig(tmc)),
+		goka.WithViewConsumerSaramaBuilder(goka.SaramaConsumerBuilderWithConfig(gokaConfig)),
 	)
 	if err != nil {
 		klog.Fatalf("can't create view: %v", err)

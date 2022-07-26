@@ -4,8 +4,8 @@ import (
 	"sort"
 )
 
-func InsertIntoSortedSlice[T any](x T, xs []T, f func([]T) func(int) bool) []T {
-	i := sort.Search(len(xs), f(xs))
+func InsertIntoSortedSlice[T any](x T, xs []T, f func(T, []T) func(int) bool) []T {
+	i := sort.Search(len(xs), f(x, xs))
 	xs = append(xs, x)
 	copy(xs[i+1:], xs[i:])
 	xs[i] = x
