@@ -104,8 +104,8 @@ type AggregateRow struct {
 	Origin     string // FIXME
 	BrandID    string
 	CategoryID string
-	Count      int64
 	SumPrice   int64
+	Count      int64
 }
 
 func (ar AggregateResponse) MarshalJSON() ([]byte, error) {
