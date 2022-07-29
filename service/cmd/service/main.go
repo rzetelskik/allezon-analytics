@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"flag"
-	"github.com/Shopify/sarama"
 	as "github.com/aerospike/aerospike-client-go/v6"
 	"github.com/lovoo/goka"
 	"github.com/lovoo/goka/codec"
@@ -77,9 +76,9 @@ func main() {
 	}
 
 	gokaConfig := goka.DefaultConfig()
-	gokaConfig.Producer.Idempotent = true
-	gokaConfig.Producer.RequiredAcks = sarama.WaitForAll
-	gokaConfig.Net.MaxOpenRequests = 1
+	//gokaConfig.Producer.Idempotent = true
+	//gokaConfig.Producer.RequiredAcks = sarama.WaitForAll
+	//gokaConfig.Net.MaxOpenRequests = 1
 
 	tmc := goka.NewTopicManagerConfig()
 	tmc.Table.Replication = 1

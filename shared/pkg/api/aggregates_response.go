@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
 	"time"
 )
 
@@ -98,14 +99,20 @@ func (bt BucketTime) MarshalJSON() ([]byte, error) {
 	return json.Marshal(time.Time(bt).Format("2006-01-02T15:04:05"))
 }
 
+type AggregateValue int64
+
+func (av AggregateValue) MarshalJSON() ([]byte, error) {
+	return json.Marshal(strconv.FormatInt(int64(av), 10))
+}
+
 type AggregateRow struct {
 	Bucket     BucketTime
 	Action     Action
 	Origin     string // FIXME
 	BrandID    string
 	CategoryID string
-	SumPrice   int64
-	Count      int64
+	SumPrice   AggregateValue
+	Count      AggregateValue
 }
 
 func (ar AggregateResponse) MarshalJSON() ([]byte, error) {

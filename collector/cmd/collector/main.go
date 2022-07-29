@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/Shopify/sarama"
 	"github.com/lovoo/goka"
 	"github.com/rzetelskik/allezon-analytics/collector/internal/collector"
 	"github.com/rzetelskik/allezon-analytics/shared/pkg/api"
@@ -34,9 +33,9 @@ func main() {
 	log.SetOutput(os.Stdout)
 
 	gokaConfig := goka.DefaultConfig()
-	gokaConfig.Producer.Idempotent = true
-	gokaConfig.Producer.RequiredAcks = sarama.WaitForAll
-	gokaConfig.Net.MaxOpenRequests = 1
+	//gokaConfig.Producer.Idempotent = true
+	//gokaConfig.Producer.RequiredAcks = sarama.WaitForAll
+	//gokaConfig.Net.MaxOpenRequests = 1
 
 	tmc := goka.NewTopicManagerConfig()
 	tmc.Table.Replication = 1

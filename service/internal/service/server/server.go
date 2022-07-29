@@ -229,8 +229,8 @@ func (s *server) AggregatesPostHandler(w http.ResponseWriter, r *http.Request) {
 			Origin:     origin,
 			BrandID:    brand_id,
 			CategoryID: category_id,
-			Count:      ua.Count,
-			SumPrice:   ua.SumPrice,
+			Count:      api.AggregateValue(ua.Count),
+			SumPrice:   api.AggregateValue(ua.SumPrice),
 		}
 		rows = append(rows, r)
 	}
@@ -247,8 +247,12 @@ func (s *server) AggregatesPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	klog.Infof("created aggregate: %v", string(data))
+
 	if !reflect.DeepEqual(expected, data) {
 		klog.Errorf("expected and actual data differ: %s", cmp.Diff(expected, data))
+	} else {
+		klog.Infof("actual data matches expected")
 	}
 
 	w.Header().Set("Content-Type", "application/json")
