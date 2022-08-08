@@ -6,8 +6,8 @@ import (
 )
 
 type UserAggregates struct {
-	Count    int64 `json:"count"`
-	SumPrice int64 `json:"sum_price"`
+	Count    int64 `json:"count" as:"count"`
+	SumPrice int64 `json:"sum_price" as:"sum_price"`
 }
 
 type UserAggregatesCodec struct{}

@@ -2,10 +2,12 @@ FROM golang:1.18 as build
 
 WORKDIR /go/src/github.com/rzetelskik/allezon-analytics/
 COPY shared/ shared/
-
-COPY collector/ collector/
+COPY collector/go.mod collector/go.sum collector/
 
 WORKDIR /go/src/github.com/rzetelskik/allezon-analytics/collector/
+RUN go mod download
+
+COPY collector/ ./
 RUN make build
 
 FROM ubuntu:21.04
