@@ -75,6 +75,13 @@ func main() {
 		Bin:       "data",
 	}
 
+	userAggregatesStore := &aerospike.UserAggregatesStore{
+		Client:    asClient,
+		Policy:    as.NewPolicy(),
+		Namespace: "mimuw",
+		Set:       "user_aggregates",
+	}
+
 	gokaConfig := goka.DefaultConfig()
 	//gokaConfig.Producer.Idempotent = true
 	//gokaConfig.Producer.RequiredAcks = sarama.WaitForAll
@@ -98,10 +105,10 @@ func main() {
 		klog.Fatalf("can't ensure stream \"%s\" exists: %v", kafka.UserProfileTopic, err)
 	}
 
-	err = tm.EnsureTableExists(string(kafka.SinkTable), 1)
-	if err != nil {
-		klog.Fatalf("can't ensure stream \"%s\" exists: %v", kafka.SinkTable, err)
-	}
+	//err = tm.EnsureTableExists(string(kafka.SinkTable), 1)
+	//if err != nil {
+	//	klog.Fatalf("can't ensure stream \"%s\" exists: %v", kafka.SinkTable, err)
+	//}
 
 	emitter, err := goka.NewEmitter(
 		bootstrap,
@@ -120,32 +127,32 @@ func main() {
 		}
 	}()
 
-	view, err := goka.NewView(
-		bootstrap,
-		kafka.SinkTable,
-		new(api.UserAggregatesCodec),
-		goka.WithViewTopicManagerBuilder(goka.TopicManagerBuilderWithTopicManagerConfig(tmc)),
-		goka.WithViewConsumerSaramaBuilder(goka.SaramaConsumerBuilderWithConfig(gokaConfig)),
-	)
-	if err != nil {
-		klog.Fatalf("can't create view: %v", err)
-	}
+	//view, err := goka.NewView(
+	//	bootstrap,
+	//	kafka.SinkTable,
+	//	new(api.UserAggregatesCodec),
+	//	goka.WithViewTopicManagerBuilder(goka.TopicManagerBuilderWithTopicManagerConfig(tmc)),
+	//	goka.WithViewConsumerSaramaBuilder(goka.SaramaConsumerBuilderWithConfig(gokaConfig)),
+	//)
+	//if err != nil {
+	//	klog.Fatalf("can't create view: %v", err)
+	//}
 
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	//wg.Add(1)
+	//go func() {
+	//	defer wg.Done()
+	//
+	//	err = view.Run(ctx)
+	//	if err != nil {
+	//		close(stopCh)
+	//		klog.Fatalf("can't run view: %v", err)
+	//	}
+	//}()
 
-		err = view.Run(ctx)
-		if err != nil {
-			close(stopCh)
-			klog.Fatalf("can't run view: %v", err)
-		}
-	}()
-
-	srv := server.NewHTTPServer(":8080", userProfileStore, emitter, view)
+	srv := server.NewHTTPServer(":8080", userProfileStore, userAggregatesStore, emitter, nil)
 
 	wg.Add(1)
 	go func() {
@@ -165,7 +172,7 @@ func main() {
 		<-ctx.Done()
 
 		klog.Info("Shutting down the server")
-		defer log.Println("Server shut down")
+		defer klog.Info("Server shut down")
 
 		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer shutdownCancel()

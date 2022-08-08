@@ -20,8 +20,9 @@ import (
 
 type server struct {
 	upStore *aerospike.AerospikeStore[api.UserProfile]
+	uaStore *aerospike.UserAggregatesStore
 	emitter *goka.Emitter
-	view    *goka.View
+	//view    *goka.View
 }
 
 func (s *server) UserTagsPostHandler(w http.ResponseWriter, r *http.Request) {
@@ -212,16 +213,24 @@ func (s *server) AggregatesPostHandler(w http.ResponseWriter, r *http.Request) {
 	for b := lowerBound; b.Before(upperBound); b = b.Add(time.Minute) {
 		hash := util.GetAggregateHash(b, action, origin, brand_id, category_id)
 
-		v, err := s.view.Get(hash)
+		//v, err := s.view.Get(hash)
+		//if err != nil {
+		//	http.Error(w, err.Error(), http.StatusInternalServerError)
+		//	return
+		//}
+
+		ua := api.UserAggregates{}
+		//if v != nil {
+		//	ua = v.(api.UserAggregates)
+		//}
+
+		err = s.uaStore.Get(hash, &ua)
 		if err != nil {
+			klog.Errorf("can't get user aggregate: %w", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
-		ua := api.UserAggregates{}
-		if v != nil {
-			ua = v.(api.UserAggregates)
-		}
+		klog.Infof("got aggregate for hash: %q: %v", hash, ua)
 
 		r := api.AggregateRow{
 			Bucket:     api.BucketTime(b),
@@ -276,11 +285,12 @@ func (s *server) ReadyzHandler(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func NewHTTPServer(addr string, userProfileStore *aerospike.AerospikeStore[api.UserProfile], emitter *goka.Emitter, view *goka.View) *http.Server {
+func NewHTTPServer(addr string, userProfileStore *aerospike.AerospikeStore[api.UserProfile], userAggregatesStore *aerospike.UserAggregatesStore, emitter *goka.Emitter, _ *goka.View) *http.Server {
 	s := &server{
 		upStore: userProfileStore,
+		uaStore: userAggregatesStore,
 		emitter: emitter,
-		view:    view,
+		//view:    view,
 	}
 
 	r := mux.NewRouter()

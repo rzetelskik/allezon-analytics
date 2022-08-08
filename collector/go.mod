@@ -3,9 +3,12 @@ module github.com/rzetelskik/allezon-analytics/collector
 go 1.18
 
 require (
+	github.com/aerospike/aerospike-client-go/v6 v6.2.1
 	github.com/lovoo/goka v1.1.7
 	k8s.io/klog/v2 v2.70.1
 )
+
+require github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da // indirect
 
 require (
 	github.com/Shopify/sarama v1.33.0 // indirect
@@ -32,7 +35,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
 	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2 // indirect
-	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a // indirect
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 )
 
 replace github.com/rzetelskik/allezon-analytics/shared v0.0.0 => ../shared

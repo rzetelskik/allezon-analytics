@@ -6,13 +6,18 @@ import (
 	"k8s.io/klog/v2"
 )
 
-func Collect(ctx goka.Context, msg interface{}) {
-	var ua api.UserAggregates
+type Collector struct {
+	store *Store
+}
 
-	v := ctx.Value()
-	if v != nil {
-		ua = v.(api.UserAggregates)
-	}
+func (c *Collector) Collect(ctx goka.Context, msg interface{}) {
+	//var ua api.UserAggregates
+
+	//v := ctx.Value()
+	//if v != nil {
+	//	ua = v.(api.UserAggregates)
+	//}
+	key := ctx.Key()
 
 	ut, ok := msg.(*api.UserTag)
 	if !ok {
@@ -20,8 +25,19 @@ func Collect(ctx goka.Context, msg interface{}) {
 		return
 	}
 
-	ua.Count += 1
-	ua.SumPrice += int64(ut.Product.Price)
+	c.store.Add(key, api.UserAggregates{
+		Count:    1,
+		SumPrice: int64(ut.Product.Price),
+	})
 
-	ctx.SetValue(ua)
+	//ua.Count += 1
+	//ua.SumPrice += int64(ut.Product.Price)
+
+	//ctx.SetValue(ua)
+}
+
+func NewCollector(store *Store) Collector {
+	return Collector{
+		store: store,
+	}
 }

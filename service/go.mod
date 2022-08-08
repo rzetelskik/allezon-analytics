@@ -8,6 +8,7 @@ require (
 	github.com/google/go-cmp v0.5.7
 	github.com/gorilla/mux v1.8.0
 	github.com/lovoo/goka v1.1.7
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/rzetelskik/allezon-analytics/shared v0.0.0
 	k8s.io/klog/v2 v2.70.1
 )
