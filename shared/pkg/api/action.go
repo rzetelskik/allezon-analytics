@@ -5,19 +5,19 @@ import (
 	"fmt"
 )
 
+type Action int
+
 const (
 	VIEW Action = iota + 1
 	BUY
 )
-
-type Action int
 
 var actionToString = map[Action]string{
 	VIEW: "VIEW",
 	BUY:  "BUY",
 }
 
-var stringToAction = map[string]Action{
+var actionFromString = map[string]Action{
 	"VIEW": VIEW,
 	"BUY":  BUY,
 }
@@ -37,14 +37,14 @@ func (a *Action) UnmarshalJSON(data []byte) error {
 
 	*a, err = ParseAction(s)
 	if err != nil {
-		return err
+		return fmt.Errorf("can't parse action: %w", err)
 	}
 
 	return nil
 }
 
 func ParseAction(s string) (Action, error) {
-	a, ok := stringToAction[s]
+	a, ok := actionFromString[s]
 	if !ok {
 		return Action(0), fmt.Errorf("%q is not a valid action", s)
 	}

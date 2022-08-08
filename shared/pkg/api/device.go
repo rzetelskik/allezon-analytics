@@ -8,26 +8,25 @@ import (
 type Device int
 
 const (
-	PC Device = iota
+	PC Device = iota + 1
 	MOBILE
 	TV
 )
 
+var deviceToString = map[Device]string{
+	PC:     "PC",
+	MOBILE: "MOBILE",
+	TV:     "TV",
+}
+
+var deviceFromString = map[string]Device{
+	"PC":     PC,
+	"MOBILE": MOBILE,
+	"TV":     TV,
+}
+
 func (d Device) MarshalJSON() ([]byte, error) {
-	var s string
-
-	switch d {
-	case PC:
-		s = "PC"
-	case MOBILE:
-		s = "MOBILE"
-	case TV:
-		s = "TV"
-	default:
-		return nil, fmt.Errorf("invalid device")
-	}
-
-	return json.Marshal(s)
+	return json.Marshal(d.String())
 }
 
 func (d *Device) UnmarshalJSON(data []byte) error {
@@ -39,16 +38,23 @@ func (d *Device) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("can't unmarshal to string: %w", err)
 	}
 
-	switch s {
-	case "PC":
-		*d = PC
-	case "MOBILE":
-		*d = MOBILE
-	case "TV":
-		*d = TV
-	default:
-		return fmt.Errorf("device '%s' is not supported", s)
+	*d, err = ParseDevice(s)
+	if err != nil {
+		return fmt.Errorf("can't parse device: %w", err)
 	}
 
 	return nil
+}
+
+func ParseDevice(s string) (Device, error) {
+	d, ok := deviceFromString[s]
+	if !ok {
+		return Device(0), fmt.Errorf("%q is not a valid device", s)
+	}
+
+	return d, nil
+}
+
+func (d Device) String() string {
+	return deviceToString[d]
 }
