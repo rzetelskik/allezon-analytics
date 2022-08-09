@@ -70,8 +70,8 @@ func main() {
 	userProfileStore := &aerospike.AerospikeStore[api.UserProfile]{
 		Client:    asClient,
 		Policy:    as.NewPolicy(),
-		Namespace: "mimuw",
-		Set:       "user_profile",
+		Namespace: aerospike.Namespace,
+		Set:       aerospike.UserProfileSet,
 		Compress:  true,
 	}
 
