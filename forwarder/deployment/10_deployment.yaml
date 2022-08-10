@@ -7,7 +7,7 @@ metadata:
   labels:
     app: forwarder
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: forwarder
@@ -20,5 +20,3 @@ spec:
       - name: forwarder
         image: docker.io/rzetelskik/allezon-forwarder:latest
         imagePullPolicy: Always
-
-
