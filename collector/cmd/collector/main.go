@@ -13,10 +13,6 @@ import (
 	"runtime"
 )
 
-var (
-	bootstrap = []string{"kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092"}
-)
-
 func main() {
 	var err error
 
@@ -37,7 +33,7 @@ func main() {
 	)
 
 	p, err := goka.NewProcessor(
-		bootstrap,
+		[]string{kafka.Bootstrap},
 		g,
 	)
 	if err != nil {

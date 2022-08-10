@@ -22,10 +22,6 @@ import (
 	"time"
 )
 
-var (
-	bootstrap = []string{"kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092"}
-)
-
 func main() {
 	var err error
 
@@ -59,7 +55,7 @@ func main() {
 		os.Exit(1)
 	}()
 
-	host := as.NewHost("aerospike-aerospike.aerospike.svc.cluster.local", 3000)
+	host := as.NewHost(aerospike.Host, aerospike.Port)
 	policy := as.NewClientPolicy()
 	asClient, err := as.NewClientWithPolicyAndHost(policy, host)
 	if err != nil {
@@ -76,7 +72,7 @@ func main() {
 	}
 
 	emitter, err := goka.NewEmitter(
-		bootstrap,
+		[]string{kafka.Bootstrap},
 		kafka.UserProfileTopic,
 		new(codec.Bytes),
 	)
@@ -91,7 +87,7 @@ func main() {
 	}()
 
 	view, err := goka.NewView(
-		bootstrap,
+		[]string{kafka.Bootstrap},
 		kafka.SinkTable,
 		new(api.UserAggregatesCodec),
 	)
