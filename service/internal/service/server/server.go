@@ -185,15 +185,6 @@ func (s *server) AggregatesPostHandler(w http.ResponseWriter, r *http.Request) {
 	brand_id := values.Get("brand_id")
 	category_id := values.Get("category_id")
 
-	expected, err := io.ReadAll(r.Body)
-	defer r.Body.Close()
-
-	if err != nil {
-		klog.Errorf("can't read io: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	columns := []api.AggregateColumn{api.BUCKET, api.ACTION}
 	if len(origin) > 0 {
 		columns = append(columns, api.ORIGIN)
@@ -240,23 +231,32 @@ func (s *server) AggregatesPostHandler(w http.ResponseWriter, r *http.Request) {
 		Rows:    rows,
 	}
 
-	data, err := json.Marshal(ar)
+	payload, err := json.Marshal(ar)
 	if err != nil {
 		klog.Errorf("can't marshall aggregate response: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	klog.Infof("created aggregate: %v", string(data))
+	if klog.V(4).Enabled() {
+		expected, err := io.ReadAll(r.Body)
+		defer r.Body.Close()
 
-	if !reflect.DeepEqual(expected, data) {
-		klog.Errorf("expected and actual data differ: %s", cmp.Diff(expected, data))
-	} else {
-		klog.Infof("actual data matches expected")
+		if err != nil {
+			klog.Errorf("can't read io: %v", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if !reflect.DeepEqual(expected, payload) {
+			klog.Errorf("expected and actual data differ: %s", cmp.Diff(expected, payload))
+		} else {
+			klog.Infof("actual data matches expected")
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(data)
+	w.Write(payload)
 }
 
 func (s *server) HealthzHandler(w http.ResponseWriter, _ *http.Request) {
