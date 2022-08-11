@@ -74,7 +74,7 @@ autoGenerateNodeIds: true
 # Default Namespace related configuration
 
 aerospikeNamespace: "mimuw"
-aerospikeNamespaceMemoryGB: "15"
+aerospikeNamespaceMemoryGB: "7"
 aerospikeReplicationFactor: "3"
 aerospikeDefaultTTL: "0"
 
@@ -235,7 +235,7 @@ persistenceStorage:
   storageClass: local-volumes
   accessMode: ReadWriteOnce
   volumeMode: Filesystem
-  size: 16Gi
+  size: 8Gi
 
 # Don't specify same 'mountPath' in both 'volumes' and 'persistenceStorage' configs.
 volumes: {}

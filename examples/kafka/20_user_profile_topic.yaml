@@ -6,4 +6,7 @@ metadata:
   namespace: kafka
   labels:
     strimzi.io/cluster: kafka-cluster
-spec: {}
+spec:
+  config:
+    retention.ms: 3600000
+    retention.bytes: 1073741824
