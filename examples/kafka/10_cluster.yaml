@@ -41,14 +41,32 @@ spec:
       class: local-xfs
       deleteClaim: false
       type: persistent-claim
-      size: 4Gi
+      size: 8Gi
+    template:
+      pod:
+        topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: kafka
   zookeeper:
     replicas: 5
     storage:
       class: local-xfs
       deleteClaim: false
       type: persistent-claim
-      size: 4Gi
+      size: 2Gi
+    template:
+      pod:
+        topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: zookeeper
   entityOperator:
     topicOperator: { }
     userOperator: { }
