@@ -32,7 +32,7 @@ func TestBacktrack(t *testing.T) {
 	for _, test := range ts {
 		t.Run(test.name, func(t *testing.T) {
 			res := make([][]string, 0)
-			Backtrack(0, []string{}, test.set, &res)
+			Backtrack([]string{}, test.set, &res)
 			if !reflect.DeepEqual(test.expected, res) {
 				t.Errorf("expected and computed result differ: %s", cmp.Diff(test.expected, res))
 			}

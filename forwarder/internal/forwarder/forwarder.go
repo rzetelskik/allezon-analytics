@@ -18,9 +18,7 @@ func Forward(ctx goka.Context, msg interface{}) {
 
 	properties := []string{ut.Origin, ut.Product.BrandID, ut.Product.CategoryID}
 	filters := make([][]string, 0)
-	for i := 0; i < len(properties); i++ {
-		Backtrack(i, []string{}, properties, &filters)
-	}
+	Backtrack([]string{}, properties, &filters)
 
 	bucket := ut.Time.Truncate(time.Minute)
 	for _, f := range filters {
