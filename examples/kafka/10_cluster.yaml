@@ -38,17 +38,17 @@ spec:
       log.cleanup.policy: "delete"
       log.cleaner.enable: "true"
     storage:
-      class: local-volumes
+      class: local-xfs
       deleteClaim: false
       type: persistent-claim
-      size: 8Gi
+      size: 4Gi
   zookeeper:
     replicas: 5
     storage:
-      class: local-volumes
+      class: local-xfs
       deleteClaim: false
       type: persistent-claim
-      size: 8Gi
+      size: 4Gi
   entityOperator:
     topicOperator: { }
     userOperator: { }

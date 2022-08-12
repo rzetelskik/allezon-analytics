@@ -232,7 +232,7 @@ persistenceStorage:
 - mountPath: /opt/aerospike/data
   enabled: true
   name: datadir
-  storageClass: local-volumes
+  storageClass: local-xfs
   accessMode: ReadWriteOnce
   volumeMode: Filesystem
   size: 8Gi
