@@ -9,4 +9,4 @@ metadata:
 spec:
   config:
     retention.ms: 86400000
-    retention.bytes: 2147483648
+    retention.bytes: 429496729

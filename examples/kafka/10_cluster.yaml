@@ -30,10 +30,10 @@ spec:
       transaction.state.log.min.isr: 2
       min.insync.replicas: 2
       inter.broker.protocol.version: "3.2"
-      log.segment.bytes: 107374182
+      log.segment.bytes: 21474836
       log.segment.delete.delay.ms: 1000
       log.retention.ms: 3600000
-      log.retention.bytes: 1073741824
+      log.retention.bytes: 214748364
       log.retention.check.interval.ms: 20000
       log.cleanup.policy: "delete"
       log.cleaner.enable: "true"
