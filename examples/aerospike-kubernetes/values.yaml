@@ -24,7 +24,7 @@
 ### -------------------------------------
 
 # Number of replicas
-dbReplicas: 5 # Also controls number of nodes in the aerospike cluster.
+dbReplicas: 3 # Also controls number of nodes in the aerospike cluster.
 
 # Number of seconds to wait after SIGTERM before force killing the pod.
 terminationGracePeriodSeconds: 600
@@ -75,7 +75,7 @@ autoGenerateNodeIds: true
 
 aerospikeNamespace: "mimuw"
 aerospikeNamespaceMemoryGB: "7"
-aerospikeReplicationFactor: "3"
+aerospikeReplicationFactor: "2"
 aerospikeDefaultTTL: "0"
 
 # Aerospike TCP ports
@@ -298,7 +298,7 @@ securityContext: {}
 enableAerospikePrometheusExporter: false
 
 # Enable Aerospike Monitoring - sidecar prometheus exporter, Prometheus, Grafana, Alertmanager stack
-enableAerospikeMonitoring: true
+enableAerospikeMonitoring: false
 
 
 ### --------------------------------------------
